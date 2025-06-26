@@ -1,0 +1,8 @@
+README.md
+setup.py
+Network_Pruner/FAIR_Pruner.py
+Network_Pruner/__init__.py
+Network_Pruner.egg-info/PKG-INFO
+Network_Pruner.egg-info/SOURCES.txt
+Network_Pruner.egg-info/dependency_links.txt
+Network_Pruner.egg-info/top_level.txt
