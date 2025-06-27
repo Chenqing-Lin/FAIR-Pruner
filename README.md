@@ -4,9 +4,9 @@
 
 **FAIR-Pruner** is an automated pruning tool based on FDR (False Discovery Rate), designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
 
-![Original model](image/original_model.pdf)
+![Original model](image/original_model.png)
 
-![Pruned model](image/tiny_model.pdf)
+![Pruned model](image/tiny_model.png)
 ## Requirements
 
 - Python 3.7.7
@@ -24,10 +24,10 @@ You can also use other datasets such as ImageNet2012 1K. Feel free to modify the
 
 # Preparatory work
 
-## Install our FAIR-Pruner library
-For example, install FAIR-pruner version 0.4. `FAIR_Pruner-0.4-py3-none-any.whl` is in the dist folder.
+## Install our Network_Pruner library
+For example, install Network_Pruner version 0.5. `Network_Pruner-0.5-py3-none-any.whl` is in the dist folder.
 ```{bash}
-pip install dist/FAIR_Pruner-0.4-py3-none-any.whl
+pip install dist/Network_Pruner-0.5-py3-none-any.whl
 ```
 ## Install Dataset and Model
 To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 pieces belonging to the CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
@@ -36,7 +36,7 @@ To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_
 
 ## Import our method
 ```
-from FAIR_Pruner import *
+from Network_Pruner import FAIR_Pruner as fp
 ```
 ## Preset the necessary parameters
 ```
@@ -54,14 +54,14 @@ class_num = 10  # Determined by the prediction problem itself, the labels of the
 
 ### Calculate the Reconstruction Error and Distance
 ```
-results = FAIR_Pruner_get_results(model_path, data_path, results_save_path,
+results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
             the_list_of_layers_to_prune,the_list_of_layers_to_compute_Distance,
-            loss_function = loss_function, device, class_num,
+            loss_function, device, class_num,
             the_batch_for_compute_distance = 16, max_sample_for_compute_distance = 1e+10)
 ```
 ### Determine the number of neurons that should be prune off in each layer based on the FDR level
 ```
-k_list = get_k_list(results, the_list_of_layers_to_prune, FDR_level = 0.05)
+k_list = fp.get_k_list(results, the_list_of_layers_to_prune, FDR_level = 0.05)
 ```
 ### Define a pruned Tiny network class
 ```
@@ -122,7 +122,7 @@ tiny_model = Tiny_model_class()
 ```
 ### Copy the parameters of the original model to the small network model and save tiny_model
 ```
-tiny_model = Generate_model_after_pruning(tiny_model,model_path,
+tiny_model = fp.Generate_model_after_pruning(tiny_model,model_path,
                              tiny_model_save_path,
                              results,k_list,
                              the_list_of_layers_to_prune)
