@@ -54,6 +54,9 @@ class_num = 10  # Determined by the prediction problem itself, the labels of the
 
 ### Calculate the Reconstruction Error and Distance
 ```
+import torch
+import torch.nn as nn
+
 results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
             the_list_of_layers_to_prune,the_list_of_layers_to_compute_Distance,
             loss_function, device, class_num,
