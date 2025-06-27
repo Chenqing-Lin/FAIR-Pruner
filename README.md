@@ -40,6 +40,9 @@ from Network_Pruner import FAIR_Pruner as fp
 ```
 ## Preset the necessary parameters
 ```
+import torch
+import torch.nn as nn
+
 model_path = r'../CIFAR10_vgg16.pht'
 data_path = r'../Mini_CIFAR10_640case.pkl'
 results_save_path = r'../test_res.pkl'
@@ -54,9 +57,6 @@ class_num = 10  # Determined by the prediction problem itself, the labels of the
 
 ### Calculate the Reconstruction Error and Distance
 ```
-import torch
-import torch.nn as nn
-
 results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
             the_list_of_layers_to_prune,the_list_of_layers_to_compute_Distance,
             loss_function, device, class_num,
