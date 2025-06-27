@@ -30,7 +30,7 @@ For example, install Network_Pruner version 0.5. `Network_Pruner-0.5-py3-none-an
 pip install dist/Network_Pruner-0.5-py3-none-any.whl
 ```
 ## Install Dataset and Model
-To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 pieces belonging to the CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
+To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 images sampled from CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
 
 # Pruning Example
 
@@ -38,7 +38,7 @@ To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_
 ```
 from Network_Pruner import FAIR_Pruner as fp
 ```
-## Preset the necessary parameters
+## Set the basic parameters
 ```
 import torch
 import torch.nn as nn
@@ -62,7 +62,7 @@ results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
             loss_function, device, class_num,
             the_batch_for_compute_distance = 16, max_sample_for_compute_distance = 1e+10)
 ```
-### Determine the number of neurons that should be prune off in each layer based on the FDR level
+### Determine the number of neurons that should be pruned in each layer based on the FDR level
 ```
 k_list = fp.get_k_list(results, the_list_of_layers_to_prune, FDR_level = 0.05)
 ```
