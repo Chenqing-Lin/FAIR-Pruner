@@ -4,8 +4,9 @@
 
 **FAIR-Pruner** is an automated pruning tool based on FDR (False Discovery Rate), designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
 
+**Original model**
 ![Original model](image/original_model.png)
-
+**Pruned  model**
 ![Pruned model](image/tiny_model.png)
 ## Requirements
 
