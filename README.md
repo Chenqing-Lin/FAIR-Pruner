@@ -63,7 +63,7 @@ results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
             loss_function, device, class_num,
             the_batch_for_compute_distance = 16, max_sample_for_compute_distance = 1e+10)
 ```
-### Determine the number of neurons that should be pruned in each layer based on the FDR level
+### Determine the number of neurons that should be pruned in each layer based on the ToD level
 ```
 k_list = fp.get_k_list(results, the_list_of_layers_to_prune, ToD_level = 0.05)
 ```
