@@ -1,8 +1,8 @@
-# FAIR-Pruner: FDR-based Automatic Identification and Removal
+# FAIR-Pruner: Flexible Automatic Identification and Removal
 
 ## Project Overview
 
-**FAIR-Pruner** is an automated pruning tool based on FDR (False Discovery Rate), designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
+**FAIR-Pruner** is a novel method of neural network pruning, designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
 
 **Original model**
 ![Original model](image/original_model.png)
@@ -65,7 +65,7 @@ results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
 ```
 ### Determine the number of neurons that should be pruned in each layer based on the FDR level
 ```
-k_list = fp.get_k_list(results, the_list_of_layers_to_prune, FDR_level = 0.05)
+k_list = fp.get_k_list(results, the_list_of_layers_to_prune, ToD_level = 0.05)
 ```
 ### Define a pruned Tiny network class
 ```
