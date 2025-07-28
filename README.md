@@ -134,5 +134,5 @@ tiny_model = fp.Generate_model_after_pruning(tiny_model,model_path,
 
 # Final Thoughts
 - The model saved after pruning is the final pruned version that can be used for further training or evaluation.
-- You can experiment with different FDR levels to see how pruning affects the model’s performance.
+- You can experiment with different ToD levels to see how pruning affects the model’s performance.
 - Make sure to adjust the layer pruning configurations (the_list_of_layers_to_prune, the_list_of_layers_to_compute_Distance) according to your model architecture.
