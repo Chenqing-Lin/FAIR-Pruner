@@ -4,6 +4,16 @@
 
 **FAIR-Pruner** is an automated pruning tool based on ToD (Tolerance of Difference), designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
 
+# Network-Pruner
+
+[![PyPI](https://img.shields.io/pypi/v/network-pruner)](https://pypi.org/project/network-pruner/)
+
+**Welcome to try our method!**  
+Install the package in one line and start pruning immediately:
+```bash
+pip install network-pruner
+```
+
 ![Original model](image/original_model.png)
 
 ![Pruned model](image/tiny_model.png)
