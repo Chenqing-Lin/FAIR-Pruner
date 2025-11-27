@@ -1,12 +1,11 @@
-# FAIR-Pruner: Flexible Automatic Identification and Removal
+# FAIR-Pruner: ToD-based Automatic Identification and Removal
 
 ## Project Overview
 
-**FAIR-Pruner** is a novel method of neural network pruning, designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
+**FAIR-Pruner** is an automated pruning tool based on ToD (Tolerance of Difference), designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
 
-**Original model**
 ![Original model](image/original_model.png)
-**Pruned  model**
+
 ![Pruned model](image/tiny_model.png)
 ## Requirements
 
@@ -26,44 +25,46 @@ You can also use other datasets such as ImageNet2012 1K. Feel free to modify the
 # Preparatory work
 
 ## Install our Network_Pruner library
-For example, install Network_Pruner version 0.5. `Network_Pruner-0.5-py3-none-any.whl` is in the dist folder.
+For example, install Network_Pruner version 1.2. 
 ```{bash}
-pip install dist/Network_Pruner-0.5-py3-none-any.whl
+pip install network-pruner==1.2
 ```
 ## Install Dataset and Model
-To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 images sampled from CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
+To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 pieces belonging to the CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
 
 # Pruning Example
+
 
 ## Import our method
 ```
 from Network_Pruner import FAIR_Pruner as fp
 ```
-## Set the basic parameters
+## Preset the necessary parameters
 ```
 import torch
 import torch.nn as nn
 
 model_path = r'../CIFAR10_vgg16.pht'
-data_path = r'../Mini_CIFAR10_640case.pkl'
-results_save_path = r'../test_res.pkl'
+data_path =  r'../cifar10_prune_dataset.pkl'
+with open(data_path, 'rb') as f:
+    prune_datasetloader = pickle.load(f)
+model = torch.load(model_path)
 tiny_model_save_path = r'../test_tiny_model.pht'
 the_list_of_layers_to_prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]
 the_list_of_layers_to_compute_Distance = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]
 loss_function = nn.CrossEntropyLoss() # The loss function used when training the model
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-class_num = 10  # Determined by the prediction problem itself, the labels of the CFIAR10 dataset have ten categories
+class_num = 10
 ```
 ## Start pruning
 
 ### Calculate the Reconstruction Error and Distance
 ```
-results = fp.FAIR_Pruner_get_results(model_path, data_path, results_save_path,
-            the_list_of_layers_to_prune,the_list_of_layers_to_compute_Distance,
-            loss_function, device, class_num,
-            the_batch_for_compute_distance = 16, max_sample_for_compute_distance = 1e+10)
+results = fp.FAIR_Pruner_get_results(model, prune_datasetloader, results_save_path,the_list_of_layers_to_prune,
+            the_list_of_layers_to_compute_Distance, loss_function, device,class_num,the_samplesize_for_compute_distance=16,class_num_for_distance=None,num_iterations=1)
+k_list = get_k_list(results,   the_list_of_layers_to_prune,0.05)
 ```
-### Determine the number of neurons that should be pruned in each layer based on the ToD level
+### Determine the number of neurons that should be prune off in each layer based on the ToD level
 ```
 k_list = fp.get_k_list(results, the_list_of_layers_to_prune, ToD_level = 0.05)
 ```
