@@ -14,9 +14,6 @@ Install the package in one line and start pruning immediately:
 pip install network-pruner
 ```
 
-![Original model](image/original_model.png)
-
-![Pruned model](image/tiny_model.png)
 ## Requirements
 
 - Python 3.7.7
