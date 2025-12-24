@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**FAIR-Pruner** is an automated pruning tool based on ToD (Tolerance of Difference), designed to prune redundant parts of deep learning models to improve computational efficiency while maintaining high accuracy. This tool can process a variety of common datasets such as **CIFAR-10** and **ImageNet2012 1K**. The project demonstrates how pruning algorithms can be applied to deep learning models.
+**FAIR-Pruner** is a statistically grounded, search-free framework for structured neural network pruning. It automatically determines layer-wise sparsity through a novel Tolerance of Difference (ToD) mechanism, eliminating the need for expensive architecture search or manual hyperparameter tuning. This repo is the Python implementation of the proposed pruning method. 
 
 # Network-Pruner
 
@@ -13,6 +13,10 @@ Install the package in one line and start pruning immediately:
 ```bash
 pip install network-pruner
 ```
+## Key Features
+- **Search-Free & Efficient:** Decouples importance estimation from sparsity allocation. Once scores are computed, you can generate models at any compression rate instantly by adjusting the ToD parameter $\alpha$, with zero additional retraining or search cost.
+- **Statistically Grounded:** Built on a rigorous theoretical framework. We prove that the U-score is uniformly consistent and that ToD-based pruning recovers population-optimal pruning sets with vanishing error probability.
+- **Automatic Layer-wise Allocation:** Automatically identifies heterogeneous redundancy patterns. It aggressively prunes redundant layers while protecting task-critical ones without manual per-layer budgets.
 
 ## Requirements
 
@@ -22,12 +26,6 @@ pip install network-pruner
 - scipy 1.10.1
 - numpy
 - pickle
-
-
-## Dataset
-This project uses the CIFAR-10 dataset for training and testing the model. The CIFAR-10 dataset contains 60,000 32x32 color images, divided into 10 classes, with 6,000 images per class. Out of the total dataset, 50,000 images are used for training, and 10,000 images are used for testing.
-
-You can also use other datasets such as ImageNet2012 1K. Feel free to modify the code to fit the dataset you're working with.
 
 # Preparatory work
 
