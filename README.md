@@ -96,9 +96,10 @@ tiny_model,report = fp.Generate_model_after_pruning(tiny_model_skeleton,model_pa
                              finetune_pruned=finetune_pruned,finetune_epochs=10,finetunedata=finetune_datasetloader,valdata=val_datasetloader)
 ```
 ###  Print / log key outputs
+```
 print("Pruning ratio:", report['pruning rate'])
-
 print("Num. of pruned parameters:", report['parameters number'])
+```
 
 ### Evaluate the Performance of the Pruned Model
 This part is implemented by the user in the way he/she likes
