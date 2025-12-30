@@ -44,30 +44,40 @@ To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_
 ```
 from Network_Pruner import FAIR_Pruner as fp
 ```
-## Preset the necessary parameters
+## Preset the basic necessary parameters
 ```
 import torch
 import torch.nn as nn
+import pickle
 
 model_path = r'../CIFAR10_vgg16.pht'
-data_path =  r'../cifar10_prune_dataset.pkl'
-with open(data_path, 'rb') as f:
-    prune_datasetloader = pickle.load(f)
-model = torch.load(model_path)
-tiny_model_save_path = r'../test_tiny_model.pht'
-the_list_of_layers_to_prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]
-the_list_of_layers_to_compute_Distance = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]
-loss_function = nn.CrossEntropyLoss() # The loss function used when training the model
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-class_num = 10
+analysis_data_path =  r'../cifar10_prune_dataset.pkl'                                               # used only for statistics collection
+model = torch.load(model_path)                                                                      # already initialized / loaded / trained
+tiny_model_save_path = r'../test_tiny_model.pht'                                                    # A path for storing the pruned model
+the_list_of_layers_to_prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
+the_list_of_layers_to_compute_Distance = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
+loss_function = nn.CrossEntropyLoss()                                                               # The loss function used when training the model            
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                               # The device we use
+class_num = 10                                                                                      # The number of classifications in the classification problem
+
+
+finetune_pruned = False				                                                       # Optional fine-tuning settings (disabled by default)
+finetune_epochs = 20  			                                                           # used only when finetune_pruned == True
+val_data_path = r'../cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
+finetune_data_path = r'../Cifar10_val_dataset.pkl'                                         # used only when finetune_pruned == True, used only if fine-tuning is enabled
 ```
 ## Start pruning
 
 ### Calculate the Reconstruction Error and Distance
 ```
-results = fp.FAIR_Pruner_get_results(model, prune_datasetloader, results_save_path,the_list_of_layers_to_prune,
+with open(analysis_data_path, 'rb') as f:                 
+    analysis_datasetloader = pickle.load(f)
+with open(val_data_path, 'rb') as f:
+    val_datasetloader = pickle.load(f)
+with open(finetune_data_path, 'rb') as f:
+    finetune_datasetloader = pickle.load(f)
+results = fp.FAIR_Pruner_get_results(model, analysis_datasetloader, results_save_path,the_list_of_layers_to_prune,
             the_list_of_layers_to_compute_Distance, loss_function, device,class_num,the_samplesize_for_compute_distance=16,class_num_for_distance=None,num_iterations=1)
-k_list = get_k_list(results,   the_list_of_layers_to_prune,0.05)
 ```
 ### Determine the number of neurons that should be prune off in each layer based on the ToD level
 ```
@@ -75,68 +85,21 @@ k_list = fp.get_k_list(results, the_list_of_layers_to_prune, ToD_level = 0.05)
 ```
 ### Define a pruned Tiny network class
 ```
-class Tiny_model_class(nn.Module):
-    def __init__(self):
-        super(Tiny_model_class, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 64 - k_list[0], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64 - k_list[0], 64 - k_list[1], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(64 - k_list[1], 128 - k_list[2], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128 - k_list[2], 128 - k_list[3], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(128 - k_list[3], 256 - k_list[4], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256 - k_list[4], 256 - k_list[5], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256 - k_list[5], 256 - k_list[6], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(256 - k_list[6], 512 - k_list[7], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512 - k_list[7], 512 - k_list[8], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512 - k_list[8], 512 - k_list[9], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(512 - k_list[9], 512 - k_list[10], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512 - k_list[10], 512 - k_list[11], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512 - k_list[11], 512 - k_list[12], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)
-        )
-        self.avgpool = nn.AdaptiveAvgPool2d(output_size=(7, 7))
-        self.classifier = nn.Sequential(
-            nn.Linear((512 - k_list[12]) * 7 * 7, 4096 - k_list[13]),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(4096 - k_list[13], 4096 - k_list[14]),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(4096 - k_list[14], 1000 - k_list[15])
-        )
-    def forward(self, x):
-        x = self.features(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        return x
-
-tiny_model = Tiny_model_class()
+tiny_model_skeleton = fp.Tiny_model_class_vgg16(k_list)
 ```
 ### Copy the parameters of the original model to the small network model and save tiny_model
 ```
-tiny_model = fp.Generate_model_after_pruning(tiny_model,model_path,
+tiny_model,report = fp.Generate_model_after_pruning(tiny_model_skeleton,model_path,
                              tiny_model_save_path,
                              results,k_list,
-                             the_list_of_layers_to_prune)
+                             the_list_of_layers_to_prune,finetune_pruned=finetune_pruned,finetune_epochs=10,finetunedata=finetune_datasetloader,valdata=val_datasetloader)
 ```
+###  Print / log key outputs
+print("Pruning ratio:", report['pruning rate'])
+print("Num. of pruned parameters:", report['parameters number'])
+
+### Evaluate the Performance of the Pruned Model
+This part is implemented by the user in the way he/she likes
 
 # Final Thoughts
 - The model saved after pruning is the final pruned version that can be used for further training or evaluation.
