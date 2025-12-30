@@ -68,7 +68,7 @@ finetune_data_path = r'../Cifar10_val_dataset.pkl'                              
 ```
 ## Start pruning
 
-### Calculate the Reconstruction Error and Distance
+### Calculate statistics
 ```
 with open(analysis_data_path, 'rb') as f:                 
     analysis_datasetloader = pickle.load(f)
@@ -92,7 +92,8 @@ tiny_model_skeleton = fp.Tiny_model_class_vgg16(k_list)
 tiny_model,report = fp.Generate_model_after_pruning(tiny_model_skeleton,model_path,
                              tiny_model_save_path,
                              results,k_list,
-                             the_list_of_layers_to_prune,finetune_pruned=finetune_pruned,finetune_epochs=10,finetunedata=finetune_datasetloader,valdata=val_datasetloader)
+                             the_list_of_layers_to_prune,
+                             finetune_pruned=finetune_pruned,finetune_epochs=10,finetunedata=finetune_datasetloader,valdata=val_datasetloader)
 ```
 ###  Print / log key outputs
 print("Pruning ratio:", report['pruning rate'])
