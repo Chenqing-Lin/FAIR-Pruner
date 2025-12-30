@@ -97,6 +97,7 @@ tiny_model,report = fp.Generate_model_after_pruning(tiny_model_skeleton,model_pa
 ```
 ###  Print / log key outputs
 print("Pruning ratio:", report['pruning rate'])
+
 print("Num. of pruned parameters:", report['parameters number'])
 
 ### Evaluate the Performance of the Pruned Model
