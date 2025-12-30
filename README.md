@@ -107,3 +107,4 @@ This part is implemented by the user in the way he/she likes
 - The model saved after pruning is the final pruned version that can be used for further training or evaluation.
 - You can experiment with different ToD levels to see how pruning affects the model’s performance.
 - Make sure to adjust the layer pruning configurations (the_list_of_layers_to_prune, the_list_of_layers_to_compute_Distance) according to your model architecture.
+- Our code only provides the pruned backbone of the VGG16 model as an example, in order to facilitate users' understanding and learning. The framework is designed to be simple and scalable, which means our approach can be applied to other model architectures as well.
