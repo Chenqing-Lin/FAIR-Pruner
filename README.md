@@ -16,7 +16,11 @@ pip install network-pruner
 ## Key Features
 - **Search-Free & Efficient:** Decouples importance estimation from sparsity allocation. Once scores are computed, you can generate models at any compression rate instantly by adjusting the ToD parameter $\alpha$, with zero additional retraining or search cost.
 - **Statistically Grounded:** Built on a rigorous theoretical framework. We prove that the U-score is uniformly consistent and that ToD-based pruning recovers population-optimal pruning sets with vanishing error probability.
-- **Automatic Layer-wise Allocation:** Automatically identifies heterogeneous redundancy patterns. It aggressively prunes redundant layers while protecting task-critical ones without manual per-layer budgets.
+- **Automatic Layer-wise Pruning:** Automatically identifies heterogeneous redundancy patterns. It aggressively prunes redundant layers while protecting task-critical ones without manual per-layer budgets.
+* **One-Shot Performance:** Grounded in a comprehensive evaluation of model health, achieving competitive accuracy immediately after pruning—often making post-pruning fine-tuning unnecessary.
+* **Framework Native:** Fully integrated with PyTorch, supporting a wide range of modules including CNNs, MLPs, and LSTMs.
+* **Automatic Layer-wise Pruning:** Eliminates manual hyperparameter tuning by adaptively determining the sparsity level of each layer.
+* **Flexible Deployment:** Decouples importance estimation from threshold determination, allowing users to generate models at varying pruning ratios effortlessly.
 
 ## Requirements
 
