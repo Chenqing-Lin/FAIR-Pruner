@@ -30,9 +30,9 @@ pip install network-pruner
 # Preparatory work
 
 ## Install our Network_Pruner library
-For example, install Network_Pruner version 1.2. 
+For example, install Network_Pruner version 1.5. 
 ```{bash}
-pip install network-pruner==1.2
+pip install network-pruner==1.5
 ```
 ## Install Dataset and Model
 To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 pieces belonging to the CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
