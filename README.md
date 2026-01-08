@@ -11,7 +11,7 @@
 **Welcome to try our method!**  
 Install the package in one line and start pruning immediately:
 ```bash
-pip install network-pruner
+pip install network-pruner==1.5
 ```
 ## Key Features
 - **Search-Free & Efficient:** Decouples importance estimation from sparsity allocation. Once scores are computed, you can generate models at any compression rate instantly by adjusting the ToD parameter $\alpha$, with zero additional retraining or search cost.
@@ -31,20 +31,7 @@ pip install network-pruner
 - numpy
 - pickle
 
-# Preparatory work
-
-## Install our Network_Pruner library
-For example, install Network_Pruner version 1.5. 
-```{bash}
-pip install network-pruner==1.5
-```
-## Install Dataset and Model
-To facilitate the demonstration of the pruning process, I provide `Mini_CIFAR10_640case.pkl` a small dataset with 640 pieces belonging to the CIFAR10 dataset and `CIFAR10_vgg16.pht` a VGG16 model trained on the CIFAR10 dataset.
-
-# Pruning Example
-
-
-## Import our method
+## Quick Start (Demo Example)
 ```
 from Network_Pruner import FAIR_Pruner as fp
 ```
