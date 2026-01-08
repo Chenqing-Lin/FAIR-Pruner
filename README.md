@@ -22,15 +22,6 @@ pip install network-pruner==1.5
 * **Automatic Layer-wise Pruning:** Eliminates manual hyperparameter tuning by adaptively determining the sparsity level of each layer.
 * **Flexible Deployment:** Decouples importance estimation from threshold determination, allowing users to generate models at varying pruning ratios effortlessly.
 
-## Requirements
-
-- Python 3.7.7
-- PyTorch 1.13.1
-- torchvision 0.14.1+cu117
-- scipy 1.10.1
-- numpy
-- pickle
-
 ## Quick Start (Demo Example)
 ```
 from Network_Pruner import FAIR_Pruner as fp
@@ -92,8 +83,16 @@ print("Pruning ratio:", report['pruning rate'])
 print("Num. of pruned parameters:", report['parameters number'])
 ```
 
-### Evaluate the Performance of the Pruned Model
-This part is implemented by the user in the way he/she likes
+## Requirements
+
+- Python 3.7.7
+- PyTorch 1.13.1
+- torchvision 0.14.1+cu117
+- scipy 1.10.1
+- numpy
+- pickle
+## Compatibility
+- Currently, this library is exclusively designed for PyTorch.
 
 # Final Thoughts
 - The model saved after pruning is the final pruned version that can be used for further training or evaluation.
