@@ -36,8 +36,8 @@ import torchvision.models as models
 
 analysis_data_path =  r'cifar10_prune_dataset.pkl'                                                  # used only for statistics collection 
 model = models.vgg16(weights=VGG16_Weights.DEFAULT)                                                 # already initialized / loaded / trained ()                                        
-layer2prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
-analysis_layer = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
+layer2prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
+analysis_layer = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                                        # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
 loss_function = nn.CrossEntropyLoss()                                                               # The loss function used when training the model            
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                               # The device we use                                                                              
 
@@ -59,16 +59,16 @@ with open(finetune_data_path, 'rb') as f:
 results = fp.get_metrics(model, analysis_ds_loader, layer2prune,
                 analysis_layer, loss_function=loss_function,the_samplesize_for_compute_distance=2)
 ```
-### Determine the number of neurons that should be prune off in each layer based on the ToD level
+### Determine the number of neurons that should be pruned off in each layer based on the ToD level
 ```
 ratios = fp.get_ratios(results,layer2prune,0.05)
 ```
-### Define a pruned Tiny network class
+### Define a pruned network class
 ```
 example_inputs = next(iter(analysis_ds_loader))[0]
 pruned_model_skeleton = fp.get_skeleton(model=model,named_modules_indices=the_list_of_layers_to_prune,ratios=ratios,example_inputs=example_inputs,align_residual_add=True,verbose=True,strict_forward_check=True,)
 ```
-### Copy the parameters of the original model to the small network model and save tiny_model
+### Copy the parameters of the original model to the small network model and save pruned_model
 ```
 pruned_model,report = fp.prune(pruned_model_skeleton,model,
                results,ratios,
