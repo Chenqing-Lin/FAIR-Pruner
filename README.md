@@ -11,7 +11,7 @@
 **Welcome to try our method!**  
 Install the package in one line and start pruning immediately:
 ```bash
-pip install network-pruner==1.5
+pip install network-pruner
 ```
 ## Key Features
 - **Search-Free & Efficient:** Decouples importance estimation from sparsity allocation. Once scores are computed, you can generate models at any compression rate instantly by adjusting the ToD parameter $\alpha$, with zero additional retraining or search cost.
@@ -31,22 +31,20 @@ from Network_Pruner import FAIR_Pruner as fp
 import torch
 import torch.nn as nn
 import pickle
+from torchvision.models import VGG16_Weights
+import torchvision.models as models
 
-model_path = r'../CIFAR10_vgg16.pht'
-analysis_data_path =  r'../cifar10_prune_dataset.pkl'                                               # used only for statistics collection
-model = torch.load(model_path)                                                                      # already initialized / loaded / trained
-tiny_model_save_path = r'../test_tiny_model.pht'                                                    # A path for storing the pruned model
-the_list_of_layers_to_prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
-the_list_of_layers_to_compute_Distance = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
+analysis_data_path =  r'cifar10_prune_dataset.pkl'                                                  # used only for statistics collection 
+model = models.vgg16(weights=VGG16_Weights.DEFAULT)                                                 # already initialized / loaded / trained ()                                        
+layer2prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
+analysis_layer = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
 loss_function = nn.CrossEntropyLoss()                                                               # The loss function used when training the model            
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                               # The device we use
-class_num = 10                                                                                      # The number of classifications in the classification problem
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                               # The device we use                                                                              
 
 finetune_pruned = False				                                                       # Optional fine-tuning settings (disabled by default)
 finetune_epochs = 20  			                                                           # used only when finetune_pruned == True
-val_data_path = r'../cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
-finetune_data_path = r'../Cifar10_val_dataset.pkl'                                         # used only when finetune_pruned == True, used only if fine-tuning is enabled
+val_data_path = r'cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
+finetune_data_path = r'Cifar10_train_dataset.pkl'                                          # used only when finetune_pruned == True, used only if fine-tuning is enabled
 ```
 ## Start pruning
 
@@ -58,24 +56,23 @@ with open(val_data_path, 'rb') as f:
     val_datasetloader = pickle.load(f)
 with open(finetune_data_path, 'rb') as f:
     finetune_datasetloader = pickle.load(f)
-results = fp.FAIR_Pruner_get_results(model, analysis_datasetloader, results_save_path,the_list_of_layers_to_prune,
-            the_list_of_layers_to_compute_Distance, loss_function, device,class_num,the_samplesize_for_compute_distance=16,class_num_for_distance=None,num_iterations=1)
+results = fp.get_metrics(model, analysis_ds_loader, layer2prune,
+                analysis_layer, loss_function=loss_function,the_samplesize_for_compute_distance=2)
 ```
 ### Determine the number of neurons that should be prune off in each layer based on the ToD level
 ```
-k_list = fp.get_k_list(results, the_list_of_layers_to_prune, ToD_level = 0.05)
+ratios = fp.get_ratios(results,layer2prune,0.05)
 ```
 ### Define a pruned Tiny network class
 ```
-tiny_model_skeleton = fp.Tiny_model_class_vgg16(k_list)
+example_inputs = next(iter(analysis_ds_loader))[0]
+pruned_model_skeleton = fp.get_skeleton(model=model,named_modules_indices=the_list_of_layers_to_prune,ratios=ratios,example_inputs=example_inputs,align_residual_add=True,verbose=True,strict_forward_check=True,)
 ```
 ### Copy the parameters of the original model to the small network model and save tiny_model
 ```
-tiny_model,report = fp.Generate_model_after_pruning(tiny_model_skeleton,model_path,
-                             tiny_model_save_path,
-                             results,k_list,
-                             the_list_of_layers_to_prune,
-                             finetune_pruned=finetune_pruned,finetune_epochs=10,finetunedata=finetune_datasetloader,valdata=val_datasetloader)
+pruned_model,report = fp.prune(pruned_model_skeleton,model,
+               results,ratios,
+               layer2prune,example_inputs=example_inputs,finetune_pruned=False,finetune_epochs=10,finetunedata=analysis_ds_loader,valdata=analysis_ds_loader,device=device)
 ```
 ###  Print / log key outputs
 ```
