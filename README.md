@@ -38,20 +38,22 @@ analysis_data_path =  r'cifar10_prune_dataset.pkl'                              
 model = models.vgg16(weights=VGG16_Weights.DEFAULT)                                                 # already initialized / loaded / trained ()                                        
 layers2prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
 analysis_layers = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                                        # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
+with open(analysis_data_path, 'rb') as f:                 
+    analysis_datasetloader = pickle.load(f)
 loss_function = nn.CrossEntropyLoss()                                                               # The loss function used when training the model            
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                               # The device we use                                                                              
 
 finetune_pruned = False				                                                       # Optional fine-tuning settings (disabled by default)
-finetune_epochs = 20  			                                                           # used only when finetune_pruned == True
-val_data_path = r'cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
-finetune_data_path = r'Cifar10_train_dataset.pkl'                                          # used only when finetune_pruned == True, used only if fine-tuning is enabled
+if finetune_pruned:
+    finetune_epochs = 20  			                                                           # used only when finetune_pruned == True
+    val_data_path = r'cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
+    finetune_data_path = r'Cifar10_train_dataset.pkl'                                          # used only when finetune_pruned == True, used only if fine-tuning is enabled
+    
 
-with open(analysis_data_path, 'rb') as f:                 
-    analysis_datasetloader = pickle.load(f)
-with open(val_data_path, 'rb') as f:
-    val_datasetloader = pickle.load(f)
-with open(finetune_data_path, 'rb') as f:
-    finetune_datasetloader = pickle.load(f)
+    with open(val_data_path, 'rb') as f:
+        val_datasetloader = pickle.load(f)
+    with open(finetune_data_path, 'rb') as f:
+        finetune_datasetloader = pickle.load(f)
 ```
 ## Start pruning
 
