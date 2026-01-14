@@ -49,7 +49,6 @@ if finetune_pruned:
     val_data_path = r'cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
     finetune_data_path = r'Cifar10_train_dataset.pkl'                                          # used only when finetune_pruned == True, used only if fine-tuning is enabled
     
-
     with open(val_data_path, 'rb') as f:
         val_datasetloader = pickle.load(f)
     with open(finetune_data_path, 'rb') as f:
