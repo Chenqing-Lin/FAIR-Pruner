@@ -57,8 +57,6 @@ with open(finetune_data_path, 'rb') as f:
 
 ### Calculate statistics
 ```
-
-
 results = fp.get_metrics(model, analysis_ds_loaders, layers2prune, analysis_layer)
 ```
 ### Determine the number of neurons that should be pruned off in each layer based on the ToD level
