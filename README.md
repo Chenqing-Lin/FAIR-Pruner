@@ -33,9 +33,7 @@ FAIR-Pruner is used through four main calls:
 results = fp.get_metrics(
     model,
     dataloader,
-    the_samplesize_for_compute_distance=2,
-    device=device,
-    loss_function=criterion  # optional (used for custom models in the notebook)
+    the_samplesize_for_compute_distance=32
 )
 ```
 
@@ -49,8 +47,7 @@ ratios = fp.get_ratios(model, results, ToD_level=0.015)
 pruned_skeleton = fp.get_skeleton(
     model=model,
     ratios=ratios,
-    example_inputs=example_inputs,
-    verbose=True  # optional
+    example_inputs=example_inputs
 )
 ```
 
@@ -61,8 +58,7 @@ pruned_model, report = fp.prune(
     model,          # original model (source for weight transfer)
     results,
     ratios,
-    example_inputs=example_inputs,
-    device=device
+    example_inputs=example_inputs
 )
 ```
 
@@ -107,8 +103,7 @@ example_inputs = next(iter(analysis_ds_loader))[0]
 results = fp.get_metrics(
     model,
     analysis_ds_loader,
-    the_samplesize_for_compute_distance=2,
-    device=device
+    the_samplesize_for_compute_distance=2
 )
 
 # 5) Derive pruning ratios from ToD
@@ -135,7 +130,7 @@ Notes:
 
 ## Example (User-Defined Model)
 
-The notebook’s Part B trains a simple custom fully-connected network on CIFAR-10, then prunes it using the same pipeline (with a `loss_function` provided to `get_metrics`).
+This part trains a simple custom fully-connected network on CIFAR-10, then prunes it using the same pipeline.
 
 ```python
 import torch
