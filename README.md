@@ -80,10 +80,7 @@ import torch
 # 1) Load a standard model
 model = models.vgg16(weights=VGG16_Weights.DEFAULT)
 
-# 2) Device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# 3) Build a small analysis loader (calibration set) + test loader
+# 2) Build a small analysis loader (calibration set) + test loader
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -99,17 +96,17 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=False)
 
 example_inputs = next(iter(analysis_ds_loader))[0]
 
-# 4) Compute pruning statistics
+# 3) Compute pruning statistics
 results = fp.get_metrics(
     model,
     analysis_ds_loader,
     the_samplesize_for_compute_distance=2
 )
 
-# 5) Derive pruning ratios from ToD
+# 4) Derive pruning ratios from ToD
 ratios = fp.get_ratios(model, results, ToD_level=0.015)
 
-# 6) Build skeleton + prune
+# 5) Build skeleton + prune
 pruned_model_skeleton = fp.get_skeleton(model=model, ratios=ratios, example_inputs=example_inputs)
 pruned_model, report = fp.prune(
     pruned_model_skeleton,
@@ -128,7 +125,7 @@ Notes:
 
 ---
 
-## Example (User-Defined Model)
+## Example (Pruning A User-Defined Model)
 
 This part trains a simple custom fully-connected network on CIFAR-10, then prunes it using the same pipeline.
 
