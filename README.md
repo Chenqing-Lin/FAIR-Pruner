@@ -64,7 +64,7 @@ pruned_model, report = fp.prune(
 
 ---
 
-## Quick Start (Standard Model: VGG16)
+## Quick Start (Pruning A Standard Model: VGG16)
 
 This snippet mirrors the notebook’s Part A, including CIFAR-10 setup and the calibration subset.
 
