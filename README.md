@@ -1,99 +1,246 @@
-# FAIR-Pruner: ToD-based Automatic Identification and Removal
+# FAIR-Pruner (PyTorch)
 
-## Project Overview
+**FAIR-Pruner** is a PyTorch pruning toolkit that performs **flexible, automatic layer-wise pruning** using the principle of **Tolerance of Difference (ToD)**. The workflow is designed to be straightforward and reproducible: you (1) compute pruning statistics on a calibration/analysis loader, (2) derive layer-wise pruning ratios from a ToD level, (3) generate a pruned “skeleton” model, then (4) instantiate the final pruned model by transferring weights and emitting a pruning report.
 
-**FAIR-Pruner** is a statistically grounded, search-free framework for structured neural network pruning. It automatically determines layer-wise sparsity through a novel Tolerance of Difference (ToD) mechanism, eliminating the need for expensive architecture search or manual hyperparameter tuning. This repo is the Python implementation of the proposed pruning method. 
+This repository includes a usage notebook organized into two parts:
+- **Part A:** pruning a standard model (e.g., `torchvision.models.vgg16`)
+- **Part B:** pruning a user-defined model (custom PyTorch modules)
 
-# Network-Pruner
+---
 
-[![PyPI](https://img.shields.io/pypi/v/network-pruner)](https://pypi.org/project/network-pruner/)
+## Installation
 
-**Welcome to try our method!**  
-Install the package in one line and start pruning immediately:
+The notebook installs the package via pip as:
+
 ```bash
 pip install network-pruner
 ```
-## Key Features
-- **Search-Free & Efficient:** Decouples importance estimation from sparsity allocation. Once scores are computed, you can generate models at any compression rate instantly by adjusting the ToD parameter $\alpha$, with zero additional retraining or search cost.
-- **Statistically Grounded:** Built on a rigorous theoretical framework. We prove that the U-score is uniformly consistent and that ToD-based pruning recovers population-optimal pruning sets with vanishing error probability.
-- **Automatic Layer-wise Pruning:** Automatically identifies heterogeneous redundancy patterns. It aggressively prunes redundant layers while protecting task-critical ones without manual per-layer budgets.
-- **One-Shot Performance:** Grounded in a comprehensive evaluation of model health, achieving competitive accuracy immediately after pruning—often making post-pruning fine-tuning unnecessary.
-- **Framework Native:** Fully integrated with PyTorch, supporting a wide range of modules including CNNs, MLPs, and LSTMs.
-- **Automatic Layer-wise Pruning:** Eliminates manual hyperparameter tuning by adaptively determining the sparsity level of each layer.
-- **Flexible Deployment:** Decouples importance estimation from threshold determination, allowing users to generate models at varying pruning ratios effortlessly.
 
-## Quick Start (Demo Example)
-```
+Then imports the pruning API as:
+
+```python
 from Network_Pruner import FAIR_Pruner as fp
 ```
-## Preset the basic necessary parameters
+
+---
+
+## How it works?
+
+FAIR-Pruner is used through four main calls:
+
+1. **Compute pruning metrics**
+```python
+results = fp.get_metrics(
+    model,
+    dataloader,
+    the_samplesize_for_compute_distance=2,
+    device=device,
+    loss_function=criterion  # optional (used for custom models in the notebook)
+)
 ```
+
+2. **Convert metrics → layer-wise pruning ratios (controlled by ToD)**
+```python
+ratios = fp.get_ratios(model, results, ToD_level=0.015)
+```
+
+3. **Build a pruned model “skeleton” (architecture with reduced channels/units)**
+```python
+pruned_skeleton = fp.get_skeleton(
+    model=model,
+    ratios=ratios,
+    example_inputs=example_inputs,
+    verbose=True  # optional
+)
+```
+
+4. **Create the final pruned model + report**
+```python
+pruned_model, report = fp.prune(
+    pruned_skeleton,
+    model,          # original model (source for weight transfer)
+    results,
+    ratios,
+    example_inputs=example_inputs,
+    device=device
+)
+```
+
+---
+
+## Quick Start (Standard Model: VGG16)
+
+This snippet mirrors the notebook’s Part A, including CIFAR-10 setup and the calibration subset.
+
+```python
+from torch.utils.data import DataLoader, Subset
+from Network_Pruner import FAIR_Pruner as fp
+from torchvision.models import VGG16_Weights
+import torchvision.transforms as transforms
+import torchvision.models as models
+import torchvision
+import torch
+
+# 1) Load a standard model
+model = models.vgg16(weights=VGG16_Weights.DEFAULT)
+
+# 2) Device
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# 3) Build a small analysis loader (calibration set) + test loader
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+idx = torch.randperm(len(trainset), generator=torch.Generator().manual_seed(0))[:32]
+subset = Subset(trainset, idx)
+analysis_ds_loader = DataLoader(subset, batch_size=32, shuffle=True)
+
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=False)
+
+example_inputs = next(iter(analysis_ds_loader))[0]
+
+# 4) Compute pruning statistics
+results = fp.get_metrics(
+    model,
+    analysis_ds_loader,
+    the_samplesize_for_compute_distance=2,
+    device=device
+)
+
+# 5) Derive pruning ratios from ToD
+ratios = fp.get_ratios(model, results, ToD_level=0.015)
+
+# 6) Build skeleton + prune
+pruned_model_skeleton = fp.get_skeleton(model=model, ratios=ratios, example_inputs=example_inputs)
+pruned_model, report = fp.prune(
+    pruned_model_skeleton,
+    model,
+    results,
+    ratios,
+    example_inputs=example_inputs
+)
+
+print(report)
+```
+
+Notes:
+- `ToD_level` is the main knob controlling pruning aggressiveness.
+- `the_samplesize_for_compute_distance` trades off speed vs. stability of the distance estimation (the notebook uses `2`).
+
+---
+
+## Example (User-Defined Model)
+
+The notebook’s Part B trains a simple custom fully-connected network on CIFAR-10, then prunes it using the same pipeline (with a `loss_function` provided to `get_metrics`).
+
+```python
 import torch
 import torch.nn as nn
-import pickle
-from torchvision.models import VGG16_Weights
-import torchvision.models as models
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from Network_Pruner import FAIR_Pruner as fp
 
-analysis_data_path =  r'cifar10_prune_dataset.pkl'                                                  # used only for statistics collection 
-model = models.vgg16(weights=VGG16_Weights.DEFAULT)                                                 # already initialized / loaded / trained ()                                        
-layers2prune = [2,4,7,9,12,14,16,19,21,23,26,28,30,35,38,41]                                         # The index of the layer where the units to be pruned are located. It is also used when calculating statistics.
-analysis_layers = [3,5,8,10,13,15,17,20,22,24,27,29,31,36,39]                                        # used only to compute the node statistics(Often, it is the activation layer between the current unit and the next layer of units.)
-with open(analysis_data_path, 'rb') as f:                 
-    analysis_datasetloader = pickle.load(f)
-loss_function = nn.CrossEntropyLoss()                                                               # The loss function used when training the model            
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                               # The device we use                                                                              
+class CustomFCModel(nn.Module):
+    def __init__(self, input_size, num_classes):
+        super(CustomFCModel, self).__init__()
+        self.fc_layers = nn.Sequential(
+            nn.Linear(input_size, 512), nn.ReLU(),
+            nn.Linear(512, 256), nn.ReLU(),
+            nn.Linear(256, 128), nn.ReLU(),
+            nn.Linear(128, 64),  nn.ReLU(),
+            nn.Linear(64, num_classes)
+        )
 
-finetune_pruned = False				                                                       # Optional fine-tuning settings (disabled by default)
-if finetune_pruned:
-    finetune_epochs = 20  			                                                           # used only when finetune_pruned == True
-    val_data_path = r'cifar10_val_dataset.pkl'                                              # used only when finetune_pruned == True, used only if fine-tuning is enabled
-    finetune_data_path = r'Cifar10_train_dataset.pkl'                                          # used only when finetune_pruned == True, used only if fine-tuning is enabled
-    
-    with open(val_data_path, 'rb') as f:
-        val_datasetloader = pickle.load(f)
-    with open(finetune_data_path, 'rb') as f:
-        finetune_datasetloader = pickle.load(f)
-```
-## Start pruning
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        return self.fc_layers(x)
 
-### Calculate statistics
-```
-results = fp.get_metrics(model, analysis_ds_loaders, layers2prune, analysis_layer)
-```
-### Determine the number of neurons that should be pruned off in each layer based on the ToD level
-```
-ratios = fp.get_ratios(results,layer2prune,0.05)
-```
-### Define a pruned network class
-```
-example_inputs = next(iter(analysis_ds_loader))[0]
-pruned_model_skeleton = fp.get_skeleton(model=model,named_modules_indices=layers2prune,ratios=ratios,example_inputs=example_inputs)
-```
-### Copy the parameters of the original model to the small network model and save pruned_model
-```
-pruned_model,report = fp.prune(pruned_model_skeleton,model,
-                           results,ratios,
-                           layer2prune,example_inputs=example_inputs)
-```
-###  Print / log key outputs
-```
-print("Pruning ratio:", report['pruning rate'])
-print("Num. of pruned parameters:", report['parameters number'])
+# Hyperparameters
+input_size = 3 * 32 * 32
+num_classes = 10
+batch_size = 64
+learning_rate = 0.001
+epochs = 5
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# Reuse the CIFAR-10 trainset from the standard-model example
+train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
+
+model = CustomFCModel(input_size, num_classes).to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+# Train (short demo run)
+model.train()
+for epoch in range(epochs):
+    running_loss, correct, total = 0.0, 0, 0
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item() * inputs.size(0)
+        _, pred = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (pred == labels).sum().item()
+
+    print(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss/total:.4f}, Train Acc: {100*correct/total:.2f}%")
+
+# Prune
+print("Pruning CustomFCModel...")
+
+custom_results = fp.get_metrics(
+    model,
+    train_loader,
+    loss_function=criterion,
+    device=device,
+    the_samplesize_for_compute_distance=2
+)
+
+custom_ratios = fp.get_ratios(model, custom_results, ToD_level=0.05)
+
+example_input = next(iter(train_loader))[0]
+pruned_skeleton = fp.get_skeleton(
+    model=model,
+    ratios=custom_ratios,
+    example_inputs=example_input,
+    verbose=True
+)
+
+pruned_model, pruning_report = fp.prune(
+    pruned_skeleton,
+    model,
+    custom_results,
+    custom_ratios,
+    example_inputs=example_input,
+    device=device
+)
+
+print(pruning_report)
+print(pruned_model)
 ```
 
-## Requirements
+---
 
-- Python 3.7.7
-- PyTorch 1.13.1
-- torchvision 0.14.1+cu117
-- scipy 1.10.1
-- numpy
-- pickle
-## Compatibility
-- Currently, this library is exclusively designed for PyTorch.
+## Citation
 
-# Final Thoughts
-- The model saved after pruning is the final pruned version that can be used for further training or evaluation.
-- You can experiment with different ToD levels to see how pruning affects the model’s performance.
-- Make sure to adjust the layer pruning configurations (the_list_of_layers_to_prune, the_list_of_layers_to_compute_Distance) according to your model architecture.
-- Our code only provides the pruned backbone of the VGG16 model as an example, in order to facilitate users' understanding and learning. The framework is designed to be simple and scalable, which means our approach can be applied to other model architectures as well.
+If you use FAIR-Pruner in your research, please cite:
+
+```bibtex
+@article{lin2025fair,
+  title={FAIR-Pruner: Leveraging Tolerance of Difference for Flexible Automatic Layer-Wise Neural Network Pruning},
+  author={Lin, Chenqing and Hussien, Mostafa and Yu, Chengyao and Jing, Bingyi and Cheriet, Mohamed and Abdelrahman, Osama and Ming, Ruixing},
+  journal={arXiv preprint arXiv:2508.02291},
+  year={2025}
+}
+```
+
+---
