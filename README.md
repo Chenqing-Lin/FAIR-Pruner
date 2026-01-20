@@ -219,6 +219,13 @@ pruned_model, pruning_report = fp.prune(
 print(pruning_report)
 print(pruned_model)
 ```
+---
+
+## Tutorial
+
+If you would like to further explore and run the examples interactively, use the Google Colab notebook below:
+
+Colab Notebook: https://colab.research.google.com/drive/1rM74QrXL6tlS6TnVv3hqn94MNLETtEHV?usp=sharing
 
 ---
 
