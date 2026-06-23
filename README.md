@@ -234,11 +234,14 @@ Colab Notebook: https://colab.research.google.com/drive/1wGNBJ9SV2TjjBnIJWCj8rxJ
 If you use FAIR-Pruner in your research, please cite:
 
 ```bibtex
-@article{lin2025fair,
-  title={FAIR-Pruner: Leveraging Tolerance of Difference for Flexible Automatic Layer-Wise Neural Network Pruning},
-  author={Lin, Chenqing and Hussien, Mostafa and Yu, Chengyao and Jing, Bingyi and Cheriet, Mohamed and Abdelrahman, Osama and Ming, Ruixing},
-  journal={arXiv preprint arXiv:2508.02291},
-  year={2025}
+@article{lin2026fairprunerflexibleframeworkautomatic,
+      title={FAIR-Pruner: A Flexible Framework for Automatic Layer-Wise Pruning via Tolerance of Difference}, 
+      author={Chenqing Lin and Mostafa Hussien and Chengyao Yu and Bingyi Jing and Ruixing Ming and Kim Khoa Nguyen and Mohamed Cheriet},
+      year={2026},
+      eprint={2508.02291},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2508.02291}, 
 }
 ```
 
